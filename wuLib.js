@@ -80,10 +80,31 @@ function mkdirs(dir, cb) {
     });
 }
 
+function sanitizeFilename(filename) {
+  return filename.replace(/[^a-zA-Z0-9_\-]/g, '_');
+}
+
+function sanitizePath(fullPath) {
+  let sanitizedPath = '';
+
+  if (path.isAbsolute(fullPath)) { // 检查是否是绝对路径
+      let root = path.parse(fullPath).root;
+      sanitizedPath += root;
+      fullPath = fullPath.substring(root.length)
+  }
+
+  const pathParts = fullPath.split(path.sep).filter(part => part !== '');
+  const sanitizedParts = pathParts.map(part => sanitizeFilename(part));
+  sanitizedPath += sanitizedParts.join(path.sep);
+  return sanitizedPath;
+}
+
 function save(name, content) {
     ioEvent.encount();
-    mkdirs(path.dirname(name), () => ioLimit.runWithCb(fs.writeFile.bind(fs), name, content, err => {
-        if (err) throw Error("Save file error: " + err);
+    let spath = sanitizePath(path.dirname(name));
+    let filename = spath + path.sep + path.basename(name);
+    mkdirs(spath, () => ioLimit.runWithCb(fs.writeFile.bind(fs), filename, content, err => {
+        if (err) throw Error("Save file error: " + err + ";name:"+filename);
         ioEvent.decount();
     }));
 }
