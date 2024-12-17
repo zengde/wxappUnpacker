@@ -154,6 +154,8 @@ function packDone(dir, cb, order) {
                     let files = fs.readdirSync(dir);
                     for (const file of files) {
                         let workDir = path.join(dir, file);
+                        const stats = fs.statSync(workDir);
+                        if(stats.isFile()) continue;
                         if (fs.existsSync(path.resolve(workDir, "app-service.js"))) {
                             console.log("sub package word dir: " + workDir);
                             mainDir = path.resolve(oldDir, mainDir);
